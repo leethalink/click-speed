@@ -1,0 +1,339 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <!-- =============================================================== -->
+    <!-- =                                                             = -->
+    <!-- = [!] WARNING: Do NOT modify this file!                       = -->
+    <!-- =     It is not part of your submission.                      = -->
+    <!-- =     All submission code should go in the submission folder. = -->
+    <!-- =     The final game shell may not appear exactly like        = -->
+    <!-- =     this.                                                   = -->
+    <!-- =                                                             = -->
+    <!-- =============================================================== -->
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Your content will resume after this ad...</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+      html, body {
+        max-width: 100%;
+        overflow-x: hidden;
+      }
+
+      body {
+        font-family: "Roboto", sans-serif;
+        margin: 0;
+        color: white;
+        background: #0a0a0a;
+      }
+
+      h1,
+      h2 {
+        font-weight: 500;
+        font-style: normal;
+      }
+
+      #wrapper {
+        display: flex;
+        flex-direction: column;
+        justify-items: center;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        width: 100%;
+      }
+
+      #inner-wrapper {
+        position: relative;
+        width: 960px;
+        height: 540px;
+      }
+
+      #video {
+        width: 960px;
+        height: 540px;
+        object-fit: cover;
+      }
+
+      #game {
+        width: 100%;
+        height: 100%;
+      }
+
+      #game-inner-wrapper {
+        position: absolute;
+        inset: 0;
+      }
+
+      #dev-success-message,
+      #dev-fail-message {
+        width: 100%;
+        padding: 16px 0;
+        color: white;
+        font-weight: bold;
+        text-align: center;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        transition: opacity 0.2s ease-in-out;
+      }
+
+      #dev-success-message {
+        background-color: oklch(62.7% 0.194 149.214);
+      }
+
+      #dev-fail-message {
+        background-color: oklch(57.7% 0.194 29.23);
+      }
+
+      .invisible {
+        opacity: 0;
+      }
+
+      #play-button {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        z-index: 10;
+        border: none;
+        color: white;
+        font-size: 64px;
+        font-family: "Roboto", sans-serif;
+      }
+
+      #play-button:hover {
+        background: rgba(0, 0, 0, 0.6);
+      }
+
+      #controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-top: 8px;
+      }
+
+      #controls button, #controls select {
+        font-family: "Roboto", sans-serif;
+        font-size: 14px;
+        padding: 4px 12px;
+        cursor: pointer;
+      }
+
+    </style>
+</head>
+<body>
+<div id="dev-success-message" class="invisible">
+    Ad skipped! The page will reload in 1 second...
+</div>
+<div id="dev-fail-message" class="invisible">
+    Ad failed! Restarting...
+</div>
+
+<!-- This code represents what the "game shell" may appear as, but is no guarantee of the final game container. -->
+<div id="wrapper">
+    <div>
+        <div>
+            Ad 1 of 3
+        </div>
+    </div>
+
+    <div id="inner-wrapper">
+        <button id="play-button">&#9654; Play</button>
+
+        <video id="video" muted playsinline></video>
+
+        <div id="game-inner-wrapper">
+            <iframe id="game" src="about:blank" frameborder="0"></iframe>
+        </div>
+    </div>
+
+    <div>
+        Your content will resume shortly...
+    </div>
+
+    <div id="controls">
+        <button id="mute-button">Unmute</button>
+
+        <select id="example-loader">
+            <option value="submission/submission.html">Your Submission</option>
+            <option value="examples/buffering/submission.html">Example: Buffering</option>
+            <option value="examples/fake-x/submission.html">Example: Fake X</option>
+            <option value="examples/slowdown/submission.html">Example: Slowdown</option>
+            <option value="examples/survey/submission.html">Example: Survey</option>
+        </select>
+    </div>
+</div>
+
+<script>
+  /*
+   * WARNING: Do NOT modify this code! It is not part of your submission!
+   */
+  (function (window, document) {
+    const devSuccessEl = document.getElementById('dev-success-message')
+    const devFailEl = document.getElementById('dev-fail-message')
+    const videoEl = document.getElementById('video')
+    const iframeEl = document.getElementById('game')
+    const playButton = document.getElementById('play-button')
+    const muteButton = document.getElementById('mute-button')
+    const exampleLoader = document.getElementById('example-loader')
+
+    const videoUrls = [
+      /*
+       * These ads are meant to be examples of what your submission may be paired with,
+       * but are not the actual ads that will be used.
+       *
+       * If you are submitting a combination submission, you may edit this array to be
+       * your ad, but you MUST also submit it as part of your final submission. (i.e.
+       * select "I am submitting both a video and code" during the submission process.
+       */
+      './ads/ad_1.mp4',
+      './ads/ad_2.mp4',
+      './ads/ad_3.mp4',
+      './ads/ad_4.mp4',
+      './ads/ad_5.mp4',
+      './ads/ad_6.mp4',
+      './ads/ad_7.mp4',
+      './ads/ad_8.mp4',
+      './ads/ad_9.mp4',
+      './ads/ad_10.mp4',
+      './ads/ad_11.mp4',
+      './ads/ad_12.mp4',
+    ];
+
+    const videoIndex = parseInt(localStorage.getItem('videoIndex') || '0', 10) % videoUrls.length;
+    localStorage.setItem('videoIndex', (videoIndex + 1).toString());
+    videoEl.src = videoUrls[videoIndex];
+
+    let started = false;
+
+    function getSubmissionSrc() {
+      return exampleLoader.value;
+    }
+
+    function loadSubmission() {
+      iframeEl.src = getSubmissionSrc();
+    }
+
+    function sendToIframe(message) {
+      iframeEl.contentWindow.postMessage(message, '*');
+    }
+
+    playButton.addEventListener('click', () => {
+      videoEl.muted = false;
+      muteButton.textContent = 'Mute';
+      started = true;
+      videoEl.play();
+      loadSubmission();
+      playButton.style.display = 'none';
+
+      iframeEl.addEventListener('load', () => {
+        sendToIframe({ type: 'adStarted' });
+      }, { once: true });
+    });
+
+    muteButton.addEventListener('click', () => {
+      videoEl.muted = !videoEl.muted;
+      muteButton.textContent = videoEl.muted ? 'Unmute' : 'Mute';
+    });
+
+    exampleLoader.addEventListener('change', () => {
+      videoEl.currentTime = 0;
+      videoEl.playbackRate = 1;
+      if (started) {
+        videoEl.play();
+      }
+      loadSubmission();
+
+      iframeEl.addEventListener('load', () => {
+        sendToIframe({ type: 'adStarted' });
+      }, { once: true });
+    });
+
+    videoEl.addEventListener('ended', () => {
+      sendToIframe({ type: 'adFinished' });
+    });
+
+    videoEl.addEventListener('timeupdate', () => {
+      sendToIframe({
+        type: 'timeupdate',
+        currentTime: videoEl.currentTime,
+        duration: videoEl.duration,
+        paused: videoEl.paused,
+        playbackRate: videoEl.playbackRate
+      });
+    });
+
+    window.addEventListener('message', (event) => {
+      if (!event.data || typeof event.data !== 'object' || !event.data.type) return;
+
+      switch (event.data.type) {
+          case 'success':
+            devSuccessEl.classList.remove('invisible');
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+            break;
+
+          case 'fail':
+            devFailEl.classList.remove('invisible');
+
+            setTimeout(() => {
+              window.location.reload();
+            }, 1000);
+            break;
+
+          case 'play':
+            videoEl.play();
+            break;
+
+          case 'pause':
+            videoEl.pause();
+            break;
+
+          case 'seekTo':
+            videoEl.currentTime = event.data.value;
+            break;
+
+          case 'setPlaybackRate':
+            videoEl.playbackRate = event.data.value;
+            break;
+
+          case 'setVolume':
+            videoEl.volume = event.data.value;
+            break;
+
+          case 'getVideoInfo':
+            sendToIframe({
+              type: 'videoInfo',
+              currentTime: videoEl.currentTime,
+              duration: videoEl.duration,
+              paused: videoEl.paused,
+              playbackRate: videoEl.playbackRate,
+              volume: videoEl.volume,
+              muted: videoEl.muted
+            });
+            break;
+
+          case 'setVideoFilter':
+            videoEl.style.filter = event.data.value;
+            break;
+
+          default:
+            console.error('Unknown event type:', event.data.type);
+        }
+    })
+  })(window, document);
+</script>
+</body>
+</html>

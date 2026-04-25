@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Slowdown Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+      color: white;
+      pointer-events: none;
+    }
+
+    #countdown {
+      font-size: 24px;
+      background: rgba(0, 0, 0, 0.6);
+      padding: 12px 28px;
+      border-radius: 4px;
+    }
+
+    #progress-container {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    #progress-fill {
+      height: 100%;
+      background: #ffcc00;
+      width: 0%;
+      transition: width 0.1s linear;
+    }
+  </style>
+</head>
+<body>
+  <div id="overlay">
+    <div id="countdown">Skip Ad in 5...</div>
+  </div>
+  <div id="progress-container">
+    <div id="progress-fill"></div>
+  </div>
+
+  <script>
+    (function(window, document) {
+      function adSuccess() {
+        window.top.postMessage({ type: 'success' }, '*');
+      }
+
+      function sendToParent(msg) {
+        window.top.postMessage(msg, '*');
+      }
+
+      const countdownEl = document.getElementById('countdown');
+      const progressFill = document.getElementById('progress-fill');
+
+      const startValue = 5;
+      let currentValue = startValue;
+      let running = false;
+
+      // Each tick takes exponentially longer: 1s, 2s, 4s, 8s, 16s
+      function getDelay(step) {
+        return 1000 * Math.pow(2, step);
+      }
+
+      function tick() {
+        const step = startValue - currentValue;
+        const delay = getDelay(step);
+
+        // Slow down the video to match
+        const rate = Math.max(0.1, 1 / Math.pow(2, step));
+        sendToParent({ type: 'setPlaybackRate', value: rate });
+
+        // Animate progress over the delay duration
+        const startProgress = ((startValue - currentValue) / startValue) * 100;
+        const endProgress = ((startValue - currentValue + 1) / startValue) * 100;
+        const startTime = Date.now();
+
+        function animateProgress() {
+          const elapsed = Date.now() - startTime;
+          const t = Math.min(elapsed / delay, 1);
+          const progress = startProgress + (endProgress - startProgress) * t;
+          progressFill.style.width = progress + '%';
+
+          if (t < 1) {
+            requestAnimationFrame(animateProgress);
+          }
+        }
+        requestAnimationFrame(animateProgress);
+
+        setTimeout(() => {
+          currentValue--;
+
+          if (currentValue <= 0) {
+            countdownEl.textContent = 'Skipping...';
+            progressFill.style.width = '100%';
+            sendToParent({ type: 'setPlaybackRate', value: 1 });
+            setTimeout(() => adSuccess(), 500);
+            return;
+          }
+
+          countdownEl.textContent = 'Skip Ad in ' + currentValue + '...';
+          tick();
+        }, delay);
+      }
+
+      // Listen for adStarted to begin
+      window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'adStarted' && !running) {
+          running = true;
+          tick();
+        }
+      });
+    })(window, document);
+  </script>
+</body>
+</html>

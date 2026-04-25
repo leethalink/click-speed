@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Survey Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: sans-serif;
+    }
+
+    #survey {
+      background: white;
+      color: #333;
+      padding: 24px 32px;
+      border-radius: 8px;
+      text-align: center;
+      min-width: 280px;
+    }
+
+    #survey h3 {
+      margin-bottom: 16px;
+      font-size: 18px;
+      font-weight: 500;
+    }
+
+    #stars {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin-bottom: 16px;
+    }
+
+    .star {
+      font-size: 32px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      color: #ccc;
+      padding: 0;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .star.active {
+      color: #f5a623;
+    }
+
+    .star:hover {
+      color: #f5a623;
+    }
+
+    #submit-btn {
+      background: #1a73e8;
+      color: white;
+      border: none;
+      padding: 8px 24px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    #submit-btn:hover {
+      background: #1557b0;
+    }
+
+    #submit-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    #message {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #d93025;
+      min-height: 20px;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="overlay" class="hidden">
+    <div id="survey">
+      <h3>Rate this ad</h3>
+      <div id="stars">
+        <button class="star" data-value="1">&#9733;</button>
+        <button class="star" data-value="2">&#9733;</button>
+        <button class="star" data-value="3">&#9733;</button>
+        <button class="star" data-value="4">&#9733;</button>
+        <button class="star" data-value="5">&#9733;</button>
+      </div>
+      <button id="submit-btn" disabled>Submit</button>
+      <div id="message"></div>
+    </div>
+  </div>
+
+  <script>
+    (function(window, document) {
+      function adSuccess() {
+        window.top.postMessage({ type: 'success' }, '*');
+      }
+
+      const stars = document.querySelectorAll('.star');
+      const submitBtn = document.getElementById('submit-btn');
+      const messageEl = document.getElementById('message');
+
+      let selectedRating = 0;
+      let attempts = 0;
+
+      const errorMessages = [
+        'Invalid response. Please try again.',
+        'Error: please re-submit.',
+        'Network error. Please try again.',
+        'Unexpected error. Please re-submit.',
+      ];
+
+      function clearSelection() {
+        selectedRating = 0;
+        stars.forEach(s => s.classList.remove('active'));
+        submitBtn.disabled = true;
+      }
+
+      stars.forEach(star => {
+        star.addEventListener('click', () => {
+          selectedRating = parseInt(star.dataset.value);
+          stars.forEach(s => {
+            s.classList.toggle('active', parseInt(s.dataset.value) <= selectedRating);
+          });
+          submitBtn.disabled = false;
+          messageEl.textContent = '';
+        });
+      });
+
+      // Show survey after the video finishes playing
+      window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'adFinished') {
+          document.getElementById('overlay').classList.remove('hidden');
+        }
+      });
+
+      submitBtn.addEventListener('click', () => {
+        attempts++;
+
+        // ~65% chance of rejection, but always accept after 5 attempts
+        const accepted = attempts >= 5 || Math.random() > 0.65;
+
+        if (accepted) {
+          messageEl.style.color = '#0d904f';
+          messageEl.textContent = 'Thank you for your feedback!';
+          submitBtn.disabled = true;
+          setTimeout(() => adSuccess(), 800);
+        } else {
+          const msg = errorMessages[Math.floor(Math.random() * errorMessages.length)];
+          messageEl.style.color = '#d93025';
+          messageEl.textContent = msg;
+          clearSelection();
+        }
+      });
+    })(window, document);
+  </script>
+</body>
+</html>

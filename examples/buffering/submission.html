@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Buffering Example</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      font-family: sans-serif;
+      color: white;
+    }
+
+    #spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    #buffering-text {
+      margin-top: 12px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <div id="overlay" class="hidden">
+    <div id="spinner"></div>
+    <div id="buffering-text">Buffering...</div>
+  </div>
+
+  <script>
+    (function(window, document) {
+      function adSuccess() {
+        window.top.postMessage({ type: 'success' }, '*');
+      }
+
+      const overlay = document.getElementById('overlay');
+      const bufferingText = document.getElementById('buffering-text');
+      const totalCycles = 6;
+      let cycle = 0;
+      let running = false;
+
+      function sendToParent(msg) {
+        window.top.postMessage(msg, '*');
+      }
+
+      function startBuffering() {
+        if (cycle >= totalCycles) {
+          setTimeout(() => adSuccess(), 300);
+          return;
+        }
+
+        // Pause video and show overlay
+        sendToParent({ type: 'pause' });
+        overlay.classList.remove('hidden');
+        bufferingText.textContent = 'Buffering...';
+
+        // Buffer duration: random 1.5-3s, gets shorter as cycles increase
+        const bufferDuration = 1500 + Math.random() * 1500;
+
+        setTimeout(() => {
+          // Resume
+          overlay.classList.add('hidden');
+          sendToParent({ type: 'play' });
+          cycle++;
+
+          // Time until next buffer: starts long, gets shorter
+          const nextDelay = Math.max(500, 3000 - cycle * 400) + Math.random() * 1000;
+
+          setTimeout(() => startBuffering(), nextDelay);
+        }, bufferDuration);
+      }
+
+      // Listen for adStarted to begin
+      window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'adStarted' && !running) {
+          running = true;
+          // Initial delay before first buffer
+          setTimeout(() => startBuffering(), 2000);
+        }
+      });
+    })(window, document);
+  </script>
+</body>
+</html>
