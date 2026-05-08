@@ -16,14 +16,18 @@ const SHAPES = ["bar", "circle", "hexagon"];
 
 /*
   FINAL_ACTION options:
-  - "return_to_skip": closes back to the small Skip Ad button
-  - "dismiss_widget": closes the interface entirely and leaves no Skip Ad button
+  - "return_to_skip": closes back to the small Skip Ad button during local testing
+  - "dismiss_widget": closes the interface entirely and leaves no Skip Ad button during local testing
+
+  In the Code Jam shell, final completion is handled by:
+  window.top.postMessage({ type: "success" }, "*");
 */
 const FINAL_ACTION = "return_to_skip";
 
 let progress = 0;
 let clickCount = 0;
 let finished = false;
+let completionSent = false;
 let clickTimes = [];
 let fastThresholdMs = 0;
 
@@ -42,6 +46,24 @@ const HOLD_MS = 1560;
 let holdMode = "restart";
 
 let audioCtx = null;
+
+function sendSuccessToGameShell() {
+  if (completionSent) {
+    return;
+  }
+
+  completionSent = true;
+  window.top.postMessage({ type: "success" }, "*");
+}
+
+function sendFailToGameShell() {
+  if (completionSent) {
+    return;
+  }
+
+  completionSent = true;
+  window.top.postMessage({ type: "fail" }, "*");
+}
 
 skipButton.addEventListener("click", function () {
   ensureAudio();
@@ -102,6 +124,7 @@ function startSession() {
   hasRevealedMultiStage = false;
   failCountSinceProgress = 0;
   finished = false;
+  completionSent = false;
   refillShapeBag();
   setHumanState("neutral");
   beginAttempt();
@@ -409,10 +432,17 @@ function setHumanState(state) {
 }
 
 function finalizeSession() {
+  if (finished) {
+    return;
+  }
+
+  finished = true;
   playFinalTone();
   statusText.textContent = "Final confirmation accepted.";
 
   setTimeout(function () {
+    sendSuccessToGameShell();
+
     if (FINAL_ACTION === "dismiss_widget") {
       dismissWidget();
     } else {
@@ -473,6 +503,7 @@ function shuffleArray(items) {
     const j = Math.floor(Math.random() * (i + 1));
     [items[i], items[j]] = [items[j], items[i]];
   }
+
   return items;
 }
 
@@ -485,9 +516,11 @@ function randomInt(min, max) {
 function ensureAudio() {
   if (!audioCtx) {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+
     if (!AudioContextClass) {
       return;
     }
+
     audioCtx = new AudioContextClass();
   }
 
@@ -501,7 +534,7 @@ function playTone(freq, duration, type, delayMs, gainAmount) {
     return;
   }
 
-  const startAt = audioCtx.currentTime + (delayMs / 1000);
+  const startAt = audioCtx.currentTime + delayMs / 1000;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
 
